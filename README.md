@@ -145,7 +145,7 @@ cd android
 
 NeoPresence talks to Discord over the Windows named pipe `\\.\pipe\discord-ipc-0`. Wine apps
 cannot reach Discord's unix socket themselves, so on Linux you also need the companion project
-**discord-pipe-bridge** (a separate repository — a link will be added here once it is public):
+**discord-pipe-bridge** (a separate repository, <https://github.com/NeofastFTL-Dev/discord-pipe-bridge>):
 build it, drop both files into
 `C:\windows` of the prefix, start it with `wine C:\windows\discord-pipe-bridge.exe`, then start
 NeoPresence in the same prefix. Without the bridge the app still runs, but stays
@@ -192,5 +192,4 @@ push presence to that PC.
 
 ## License
 
-No license file yet — one will be added before the first public release. Until then the code is
-“all rights reserved” by default.
+MIT - see [LICENSE](LICENSE), covering both the Android app and the PC tray app.

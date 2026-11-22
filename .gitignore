@@ -1,0 +1,40 @@
+# ---- Windows / .NET ----
+bin/
+obj/
+publish/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+
+# ---- Build products and local test output ----
+dist/
+test-artifacts/
+*.exe
+*.pdb
+*.log
+
+# ---- Android / Gradle ----
+android/.gradle/
+android/build/
+android/app/build/
+android/captures/
+android/.idea/
+android/local.properties
+*.apk
+*.aab
+*.hprof
+
+# ---- Signing material: NEVER commit ----
+android/keystore/
+*.jks
+*.keystore
+keystore.properties
+*.keystore.properties
+
+# ---- Editor / OS junk ----
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

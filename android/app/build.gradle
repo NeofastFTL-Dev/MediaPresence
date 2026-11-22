@@ -1,0 +1,62 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+// Release signing. The keystore lives next to this project in android/keystore/;
+// keystore.properties holds its passwords. Without that file the release build
+// stays unsigned (which Android cannot install).
+def keystorePropsFile = rootProject.file('keystore.properties')
+def keystoreProps = new Properties()
+if (keystorePropsFile.exists()) {
+    keystorePropsFile.withInputStream { keystoreProps.load(it) }
+}
+
+android {
+    namespace 'nl.neofast.presence'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'nl.neofast.presence'
+        minSdk 26
+        targetSdk 35
+        versionCode 5
+        versionName '1.2.0'
+    }
+
+    signingConfigs {
+        release {
+            if (keystorePropsFile.exists()) {
+                storeFile rootProject.file(keystoreProps['storeFile'])
+                storePassword keystoreProps['storePassword']
+                keyAlias keystoreProps['keyAlias']
+                keyPassword keystoreProps['keyPassword']
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (keystorePropsFile.exists()) signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+}
+
+dependencies {
+    // In-app QR scanner for the pairing code shown in NeoPresence on the PC.
+    implementation 'com.journeyapps:zxing-android-embedded:4.3.0'
+    // The scanner only declares androidx.core as compileOnly, so its ContextCompat reference
+    // is not bundled and CaptureActivity.onResume crashes with NoClassDefFoundError.
+    implementation 'androidx.core:core:1.13.1'
+}

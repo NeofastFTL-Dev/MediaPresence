@@ -1,6 +1,7 @@
 //! Settings, stored as JSON next to the app's data:
 //!
 //! - Windows: `%APPDATA%\MediaPresence\config.json`
+//! - macOS: `~/Library/Application Support/MediaPresence/config.json`
 //! - elsewhere: `$XDG_CONFIG_HOME/mediapresence/config.json` (or `~/.config/...`)
 //!
 //! The keys stay PascalCase and the file keeps every field the .NET build wrote, so an existing
@@ -71,7 +72,7 @@ pub fn data_dir() -> PathBuf {
 /// Windows keeps the PascalCase folder the .NET build used; elsewhere the XDG-style lowercase
 /// name is the convention.
 fn dir_name() -> &'static str {
-    if cfg!(windows) {
+    if cfg!(windows) || cfg!(target_os = "macos") {
         "MediaPresence"
     } else {
         "mediapresence"
@@ -79,7 +80,7 @@ fn dir_name() -> &'static str {
 }
 
 fn legacy_names() -> &'static [&'static str] {
-    if cfg!(windows) {
+    if cfg!(windows) || cfg!(target_os = "macos") {
         &["NeoPresence"]
     } else {
         &["MediaPresence", "NeoPresence"]
@@ -90,6 +91,12 @@ fn app_data_dir() -> PathBuf {
     if cfg!(windows) {
         if let Ok(appdata) = std::env::var("APPDATA") {
             return PathBuf::from(appdata);
+        }
+    } else if cfg!(target_os = "macos") {
+        if let Ok(home) = std::env::var("HOME") {
+            if !home.is_empty() {
+                return PathBuf::from(home).join("Library").join("Application Support");
+            }
         }
     } else if let Ok(xdg) = std::env::var("XDG_CONFIG_HOME") {
         if !xdg.is_empty() {
@@ -271,6 +278,32 @@ pub fn apply_auto_start(on: bool) {
                     .args(["DELETE", run_key, "/v", name, "/f"])
                     .status();
             }
+        }
+        return;
+    }
+
+    if cfg!(target_os = "macos") {
+        let Some(home) = std::env::var("HOME").ok().filter(|home| !home.is_empty()) else {
+            return;
+        };
+        let dir = PathBuf::from(home).join("Library").join("LaunchAgents");
+        let entry = dir.join("com.mediapresence.app.plist");
+
+        if on {
+            let exe = std::env::current_exe().map(|p| p.display().to_string()).unwrap_or_default();
+            let _ = std::fs::create_dir_all(&dir);
+            let text = format!(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n\
+<plist version=\"1.0\">\n<dict>\n\
+  <key>Label</key><string>com.mediapresence.app</string>\n\
+  <key>ProgramArguments</key><array><string>{exe}</string></array>\n\
+  <key>RunAtLoad</key><true/>\n\
+</dict>\n</plist>\n"
+            );
+            let _ = std::fs::write(&entry, text);
+        } else {
+            let _ = std::fs::remove_file(&entry);
         }
         return;
     }

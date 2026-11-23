@@ -4,7 +4,7 @@ name: build
 # Linux; the PC app is also built on Windows, which is the platform it ships on.
 on:
   push:
-    branches: [main, linux]
+    branches: [main, linux, macos]
   pull_request:
   workflow_dispatch:
 
@@ -110,3 +110,36 @@ jobs:
           $size = (Get-Item $exe).Length
           Write-Host "size: $size bytes"
           if ($size -lt 1000000) { throw "the exe is only $size bytes" }
+
+  pc-macos:
+    name: PC app (macOS build)
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: pc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: pc
+
+      - run: cargo build --release --locked
+      - run: cargo test --release --locked
+      - run: ./target/release/mediapresence --selftest
+
+      - name: Check the binary
+        run: |
+          set -euo pipefail
+          ftype=$(file -b target/release/mediapresence)
+          echo "$ftype"
+          case "$ftype" in
+            *Mach-O*) ;;
+            *) echo "not a Mach-O binary"; exit 1 ;;
+          esac
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mediapresence-pc-macos
+          path: pc/target/release/mediapresence
+          if-no-files-found: error

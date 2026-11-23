@@ -278,6 +278,19 @@ fn connect(index: u32) -> Option<Handle> {
     }
     dirs.push(PathBuf::from("/tmp"));
 
+    // The macOS Discord client keeps its socket under the app's support folder next to the
+    // TMPDIR one, so check both.
+    if cfg!(target_os = "macos") {
+        if let Ok(home) = std::env::var("HOME") {
+            dirs.push(
+                PathBuf::from(home)
+                    .join("Library")
+                    .join("Application Support")
+                    .join("discord"),
+            );
+        }
+    }
+
     for dir in dirs {
         let path = dir.join(format!("discord-ipc-{index}"));
         if let Ok(stream) = std::os::unix::net::UnixStream::connect(&path) {

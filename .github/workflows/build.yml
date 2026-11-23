@@ -4,7 +4,7 @@ name: build
 # Linux; the PC app is also built on Windows, which is the platform it ships on.
 on:
   push:
-    branches: [main]
+    branches: [main, linux]
   pull_request:
   workflow_dispatch:
 
@@ -80,6 +80,12 @@ jobs:
           esac
           size=$(stat -c %s target/release/mediapresence)
           test "$size" -gt 1000000 || { echo "binary is only $size bytes"; exit 1; }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mediapresence-pc-linux-x86_64
+          path: pc/target/release/mediapresence
+          if-no-files-found: error
 
   pc-windows:
     name: PC app (Windows build)

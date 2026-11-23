@@ -5,6 +5,7 @@ name: build
 on:
   push:
     branches: [main, linux, macos]
+    tags: ['v*']
   pull_request:
   workflow_dispatch:
 
@@ -44,6 +45,12 @@ jobs:
             *AndroidManifest.xml*) ;;
             *) echo "$apk has no AndroidManifest.xml"; exit 1 ;;
           esac
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mediapresence-android
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
 
   pc-linux:
     name: PC app (Linux build + tests)
@@ -111,6 +118,12 @@ jobs:
           Write-Host "size: $size bytes"
           if ($size -lt 1000000) { throw "the exe is only $size bytes" }
 
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mediapresence-pc-windows
+          path: pc/target/release/mediapresence.exe
+          if-no-files-found: error
+
   pc-macos:
     name: PC app (macOS build)
     runs-on: macos-latest
@@ -143,3 +156,56 @@ jobs:
           name: mediapresence-pc-macos
           path: pc/target/release/mediapresence
           if-no-files-found: error
+
+  release:
+    name: Release
+    needs: [android, pc-linux, pc-windows, pc-macos]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: mediapresence-pc-linux-x86_64
+          path: dist/linux
+      - uses: actions/download-artifact@v4
+        with:
+          name: mediapresence-pc-macos
+          path: dist/macos
+      - uses: actions/download-artifact@v4
+        with:
+          name: mediapresence-pc-windows
+          path: dist/windows
+      - uses: actions/download-artifact@v4
+        with:
+          name: mediapresence-android
+          path: dist/android
+
+      - name: Name the binaries after the tag
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          test -s dist/linux/mediapresence
+          test -s dist/macos/mediapresence
+          test -s dist/windows/mediapresence.exe
+          test -s dist/android/app-debug.apk
+          mkdir -p out
+          cp dist/linux/mediapresence "out/mediapresence-${version}-linux-x86_64"
+          cp dist/macos/mediapresence "out/mediapresence-${version}-macos"
+          cp dist/windows/mediapresence.exe "out/mediapresence-${version}-windows-x86_64.exe"
+          cp dist/android/app-debug.apk "out/mediapresence-${version}-android-debug.apk"
+          chmod 755 out/mediapresence-*
+          ls -l out
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: out/*
+          name: MediaPresence ${{ github.ref_name }}
+          generate_release_notes: true
+          body: |
+            Android phone to Discord rich presence, over wifi.
+
+            Attached: the PC app for Windows x86_64, Linux x86_64 and macOS, plus the Android
+            companion APK. The Android APK is a **debug** build because release signing needs the
+            local `android/keystore.properties`; it installs and runs the same as a release build.

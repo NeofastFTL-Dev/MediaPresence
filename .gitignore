@@ -1,3 +1,6 @@
+# ---- Rust ----
+pc/target/
+
 # ---- Windows / .NET ----
 bin/
 obj/

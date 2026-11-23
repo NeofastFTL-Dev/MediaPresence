@@ -4,8 +4,8 @@ Show what you are playing on your **Discord profile** — driven from your Andro
 from the PC. MediaPresence reads the media session on your phone (VLC or any other music app),
 sends it to the PC over your wifi, and the PC pushes it to Discord as rich presence.
 
-The PC side is a small Windows tray app; the phone side is an Android app that pairs with it by
-scanning a QR code.
+The PC side is a small desktop app written in Rust with egui; the phone side is an Android app
+that pairs with it by scanning a QR code.
 
 > The Windows UI is in Dutch, the code and this README are in English.
 
@@ -19,7 +19,7 @@ scanning a QR code.
 │  Sender (Bearer token from pairing)   │ /update│        │                              │
 └───────────────────┬───────────────────┘        │  DiscordIpc ──► \\.\pipe\discord-ipc-0 │
                     │  QR / neopresence://pair   │        │              (Discord RPC)     │
-                    └───────────────────────────►│  SettingsForm (tray icon, QR, token)   │
+                    └───────────────────────────►│  Settings window (QR, token, status)   │
                                                  └────────────────────────────────────────┘
 ```
 
@@ -35,13 +35,14 @@ scanning a QR code.
 
 | Path | What |
 |---|---|
-| `pc/` | Windows tray app, C# / WinForms on **.NET 10** (`net10.0-windows`), `QRCoder` for the pairing QR |
+| `pc/` | Desktop app, **Rust** + `eframe`/`egui` on the `glow` backend, `qrcode` for the pairing QR |
 | `android/` | Android app, Kotlin, `nl.neofast.presence`, minSdk 26 / targetSdk 35 |
 | `installer/` | NSIS 3 script for the per-user Windows installer |
 
 ## Configuration
 
-`%APPDATA%\MediaPresence\config.json` (created on first run). Before the rename this lived in
+`config.json` (created on first run): `%APPDATA%\MediaPresence\` on Windows,
+`$XDG_CONFIG_HOME/mediapresence/` (usually `~/.config/mediapresence/`) elsewhere. Before the rename this lived in
 `%APPDATA%\NeoPresence`; that folder is moved across on the first start, so the pairing token and
 the Discord settings survive. Two identities keep their old value on purpose, because they are
 install/pairing keys rather than labels: the Android application id `nl.neofast.presence` and the
@@ -53,14 +54,14 @@ install/pairing keys rather than labels: the Android application id `nl.neofast.
 | `Port` | `8787` | HTTP port of the PC server |
 | `DiscordAppId` | `1562742366731763765` | Discord application whose name/icon the presence uses |
 | `PublicUrl` | `https://presence.neofastftldev.nl` | Address the phone uses when it is not on the same wifi |
-| `Enabled` | `true` | Master switch (also in the tray menu) |
-| `StartHidden` | `true` | Start in the tray instead of showing the window |
-| `AutoStart` | `false` | Register the app under `HKCU\…\Run` |
+| `Enabled` | `true` | Master switch (checkbox in the status section) |
+| `StartHidden` | `true` | Start minimised instead of opening the window |
+| `AutoStart` | `false` | Start at login (`HKCU\…\Run` on Windows, `~/.config/autostart` elsewhere) |
 | `PauseClearSeconds` | `60` | How long a pause is tolerated before presence is cleared |
 | `LargeImage` | `""` | Optional large image asset key |
 
-Run `MediaPresence.exe --show` to open the settings window immediately; running it twice is a no-op
-(single-instance mutex).
+Run `mediapresence --show` to open the settings window immediately. The app is a normal window
+now: closing it quits, and `StartHidden` only means it opens minimised.
 
 ## HTTP API (what the phone calls)
 
@@ -81,32 +82,25 @@ the local network without knowing its IP.
 
 ## Building on this machine
 
-Everything below was verified on CachyOS with **wine-11.22**, the .NET **10.0.404** and **8.0.428**
-SDKs (Linux under `~/.dotnet`, Windows inside the prefix `~/.wine-dotnet`), and JDK 21 + the Linux
-Android SDK 35 in `~/Android/Sdk` for the phone app.
+JDK 21 + the Linux Android SDK 35 in `~/Android/Sdk` are needed for the phone app; the PC app needs
+only a Rust toolchain.
 
-### 1. PC app (Windows or Linux cross-build)
-
-On Windows:
-
-```powershell
-dotnet publish pc/MediaPresence.csproj -c Release -r win-x64 --self-contained true `
-  -p:PublishSingleFile=true -o pc/publish
-```
-
-On Linux, the same command needs the Windows Desktop targeting pack:
+### 1. PC app
 
 ```bash
-~/.dotnet/dotnet publish pc/MediaPresence.csproj -c Release -r win-x64 --self-contained true \
-  -p:PublishSingleFile=true -p:EnableWindowsTargeting=true -o pc/publish
+cd pc
+cargo build --release     # → pc/target/release/mediapresence
+cargo test                # config parsing tests
+cargo run --release -- --selftest
 ```
 
-To reproduce the exact shipping exe here, the build runs through the **Windows** .NET SDK inside a
-Wine prefix instead (`wine C:\dotnet\dotnet.exe publish …`), because Wine cannot verify signed
-NuGet packages and the restore therefore has to be prepared by the Linux SDK first. `./build-wine.sh`
-in this repository runs those three steps and writes `pc/dist/wine-x64/MediaPresence.exe`;
-`./build-wine.sh --dry-run` prints them without running anything. The two commands above are the
-portable equivalents if you would rather not use the script.
+`--selftest` is what CI runs: it checks the config normalisation, the pairing link and QR matrix,
+the presence payload builder (clipping, buttons, timestamps, pause and stop handling) and drives a
+real HTTP round trip against the server on an ephemeral port, including the 401/400/404/413/429
+paths and the UDP discovery answer. It needs no display and no Discord.
+
+Linux builds need the usual egui/winit libraries (`libxkbcommon-dev`, `libwayland-dev`, the
+`libxcb-*` and X11 dev packages, `libgl1-mesa-dev`); on Windows the toolchain is enough.
 
 ### 2. Installer
 
@@ -114,7 +108,7 @@ portable equivalents if you would rather not use the script.
 makensis /INPUTCHARSET UTF8 installer/MediaPresence.nsi   # → dist/MediaPresence-Setup-1.0.0.exe
 ```
 
-It expects `pc/publish/MediaPresence.exe`, installs per-user into
+It expects `pc/target/release/mediapresence.exe`, installs per-user into
 `%LOCALAPPDATA%\Programs\MediaPresence` and leaves `%APPDATA%\MediaPresence` alone on uninstall.
 `makensis` is **not** installed on this Linux box, so run this step on Windows (or install NSIS).
 
@@ -142,19 +136,6 @@ cd android
   The keystore and that properties file are **deliberately not in the repo** (`.gitignore`).
   Without them the release build stays unsigned and cannot be installed.
 
-### 4. Running it under Wine (Linux)
-
-`./run-wine.sh` launches `pc/dist/wine-x64/MediaPresence.exe` in `~/.wine-apps` (override with
-`WINEPREFIX=…`) and warns when the bridge below is missing.
-
-MediaPresence talks to Discord over the Windows named pipe `\\.\pipe\discord-ipc-0`. Wine apps
-cannot reach Discord's unix socket themselves, so on Linux you also need the companion project
-**discord-pipe-bridge** (a separate repository, <https://github.com/NeofastFTL-Dev/discord-pipe-bridge>):
-build it, drop both files into
-`C:\windows` of the prefix, start it with `wine C:\windows\discord-pipe-bridge.exe`, then start
-MediaPresence in the same prefix. Without the bridge the app still runs, but stays
-“Discord niet verbonden”.
-
 ## Screenshots
 
 Screenshots belong in `docs/screenshots/`. To keep the repository honest, the images are not
@@ -179,16 +160,19 @@ push presence to that PC.
 
 ## Troubleshooting
 
-* **“Discord is niet open”** — Discord is not running, or (on Linux) the pipe bridge is missing.
+* **“Discord is niet open”** — Discord is not running. The app looks for the Discord socket
+  (`$XDG_RUNTIME_DIR/discord-ipc-0`, snap/flatpak paths, `/tmp`) or the Windows named pipe itself,
+  and retries every five seconds, so starting Discord afterwards is enough.
 * **Phone cannot reach the PC** — same wifi? Windows Firewall rule for port 8787 and UDP 47801?
   Otherwise set `PublicUrl` to a tunnel address.
 * **Nothing shows while music plays** — notification access must be granted to MediaPresence, and on
   Android 13+ media notifications have to be visible.
-* Errors are appended to `%APPDATA%\MediaPresence\error.log`.
+* Faults are appended to `error.log` in the config folder (panic messages and server bind
+  failures); the status rows show the current ones live.
 
 ## Credits
 
-* QR codes: [QRCoder](https://github.com/codebude/QRCoder) (MIT).
+* QR codes: [qrcode](https://github.com/kennytm/qrcode-rust) (MIT/Apache-2.0).
 * Phone QR scanner: [zxing-android-embedded](https://github.com/journeyapps/zxing-android-embedded)
   (Apache-2.0) and [AndroidX core](https://developer.android.com/jetpack/androidx) (Apache-2.0).
 * Discord IPC implemented directly from the documented handshake — no third-party RPC library.
@@ -196,4 +180,4 @@ push presence to that PC.
 
 ## License
 
-MIT - see [LICENSE](LICENSE), covering both the Android app and the PC tray app.
+MIT - see [LICENSE](LICENSE), covering both the Android app and the PC app.

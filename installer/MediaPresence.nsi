@@ -1,7 +1,7 @@
 ; MediaPresence installer (NSIS 3).
 ; Per-user install: no admin rights, installs under %LOCALAPPDATA%\Programs\MediaPresence.
 ; Build:  makensis /INPUTCHARSET UTF8 MediaPresence.nsi
-; Input:  ..\pc\publish\MediaPresence.exe   (dotnet publish -c Release -r win-x64 --self-contained)
+; Input:  ..\pc\target\release\mediapresence.exe   (cargo build --release)
 
 Unicode true
 !include "MUI2.nsh"
@@ -10,7 +10,7 @@ Unicode true
 !define APPNAME "MediaPresence"
 !define APPVERSION "1.0.0"
 !define PUBLISHER "NeoFastFTL"
-!define APPEXE "MediaPresence.exe"
+!define APPEXE "mediapresence.exe"
 !define UNINSTKEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
 
 Name "${APPNAME}"
@@ -56,7 +56,7 @@ Section "MediaPresence" SecMain
   Sleep 400
 
   SetOutPath "$INSTDIR"
-  File "..\pc\publish\MediaPresence.exe"
+  File "..\pc\target\release\mediapresence.exe"
   WriteUninstaller "$INSTDIR\Uninstall.exe"
 
   CreateDirectory "$SMPROGRAMS\${APPNAME}"

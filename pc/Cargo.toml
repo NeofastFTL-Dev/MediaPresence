@@ -1,0 +1,23 @@
+[package]
+name = "mediapresence"
+version = "1.0.0"
+edition = "2021"
+rust-version = "1.80"
+description = "Pushes what your phone is playing to Discord as rich presence"
+license = "MIT"
+
+[[bin]]
+name = "mediapresence"
+path = "src/main.rs"
+
+[dependencies]
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+eframe = { version = "0.31", default-features = false, features = ["default_fonts", "glow", "x11", "wayland"] }
+getrandom = "0.3"
+qrcode = { version = "0.14", default-features = false }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+
+[profile.release]
+opt-level = 2
+strip = true

@@ -467,7 +467,11 @@ fn selftest() -> i32 {
     check!(uri.starts_with("neopresence://pair?t=ab%20cd&lan="), "koppel-link begint goed");
     check!(uri.contains("&pub=https%3A%2F%2F"), "openbare adres in koppel-link");
     check!(config::lan_ip().split('.').count() == 4, "wifi-adres opgehaald");
-    let expected_dir = if cfg!(windows) { "MediaPresence" } else { "mediapresence" };
+    let expected_dir = if cfg!(windows) || cfg!(target_os = "macos") {
+        "MediaPresence"
+    } else {
+        "mediapresence"
+    };
     check!(config::data_dir().ends_with(expected_dir), "configuratiemap");
 
     // ---- QR ----

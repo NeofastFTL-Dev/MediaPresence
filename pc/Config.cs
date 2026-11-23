@@ -7,9 +7,9 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace NeoPresence
+namespace MediaPresence
 {
-    /// <summary>Settings, stored as JSON in %APPDATA%\NeoPresence\config.json.</summary>
+    /// <summary>Settings, stored as JSON in %APPDATA%\MediaPresence\config.json.</summary>
     public sealed class Config
     {
         private static readonly JsonSerializerOptions Json = new() { WriteIndented = true };
@@ -32,13 +32,36 @@ namespace NeoPresence
 
         [JsonIgnore]
         public static string Dir =>
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "NeoPresence");
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MediaPresence");
 
         [JsonIgnore]
         public static string FilePath => Path.Combine(Dir, "config.json");
 
+        /// <summary>
+        /// The tray app kept its config in %APPDATA%\NeoPresence before it was renamed. Move that
+        /// folder across on the first start afterwards so the pairing token, port and Discord
+        /// settings are still there - re-pairing the phone would otherwise be required.
+        /// </summary>
+        private static void MigrateLegacyFolder()
+        {
+            try
+            {
+                string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                string legacy = Path.Combine(appData, "NeoPresence");
+                if (Directory.Exists(legacy) && !Directory.Exists(Dir))
+                {
+                    Directory.Move(legacy, Dir);
+                }
+            }
+            catch
+            {
+                // best effort: a fresh config is written if the old folder cannot be moved
+            }
+        }
+
         public static Config Load()
         {
+            MigrateLegacyFolder();
             Config cfg;
             try
             {
@@ -152,9 +175,16 @@ namespace NeoPresence
                     @"Software\Microsoft\Windows\CurrentVersion\Run", writable: true);
                 if (key == null) return;
                 if (on)
-                    key.SetValue("NeoPresence", "\"" + Application_ExecutablePath() + "\"");
-                else
+                {
+                    key.SetValue("MediaPresence", "\"" + Application_ExecutablePath() + "\"");
+                    // The rename leaves the old value behind pointing at a path that no longer exists.
                     key.DeleteValue("NeoPresence", throwOnMissingValue: false);
+                }
+                else
+                {
+                    key.DeleteValue("MediaPresence", throwOnMissingValue: false);
+                    key.DeleteValue("NeoPresence", throwOnMissingValue: false);
+                }
             }
             catch
             {

@@ -53,7 +53,7 @@ object Sender {
             200 -> "Verstuurd via internet (${time()}, $ms ms)"
             401 -> "Token klopt niet: koppel opnieuw"
             429 -> "Te veel verzoeken, even wachten"
-            else -> "PC niet bereikbaar ($code). Staat NeoPresence aan op je pc?"
+            else -> "PC niet bereikbaar ($code). Staat MediaPresence aan op je pc?"
         }
     }
 

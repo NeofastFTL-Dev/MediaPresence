@@ -119,7 +119,7 @@ class MediaListener : NotificationListenerService() {
         Sender.nowPlaying = (if (playing) "▶ " else "⏸ ") + info.details + if (info.state.isNotEmpty()) "\n" + info.state else ""
         if (key == lastKey && !(force && playing)) return
         lastKey = key; lastSentAt = now; lastWasActive = true
-        val app = when (c.packageName) { VLC -> "VLC"; packageName -> "NeoPresence test"; else -> c.packageName }
+        val app = when (c.packageName) { VLC -> "VLC"; packageName -> "MediaPresence test"; else -> c.packageName }
         val j = JSONObject().put("title", info.title).put("artist", info.artist).put("album", info.album)
             .put("details", info.details).put("state", info.state)
             .put("type", if (info.isVideo && p.videoMode == 0) 3 else p.type).put("video", info.isVideo).put("appId", p.appId)

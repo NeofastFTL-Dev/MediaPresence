@@ -4,7 +4,7 @@ using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 
-namespace NeoPresence
+namespace MediaPresence
 {
     internal static class Program
     {
@@ -13,7 +13,7 @@ namespace NeoPresence
         [STAThread]
         private static void Main(string[] args)
         {
-            _mutex = new Mutex(true, @"Local\NeoPresence.SingleInstance", out var isFirstInstance);
+            _mutex = new Mutex(true, @"Local\MediaPresence.SingleInstance", out var isFirstInstance);
             if (!isFirstInstance) return;
 
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
@@ -82,7 +82,7 @@ namespace NeoPresence
             _tray = new NotifyIcon
             {
                 Icon = SystemIcons.Application,
-                Text = "NeoPresence",
+                Text = "MediaPresence",
                 Visible = true,
                 ContextMenuStrip = menu
             };
@@ -101,7 +101,7 @@ namespace NeoPresence
 
         private void Tick()
         {
-            var tip = "NeoPresence";
+            var tip = "MediaPresence";
             if (_ipc.Connected)
                 tip += " - Discord: " + (_ipc.UserName.Length > 0 ? _ipc.UserName : "verbonden");
             else

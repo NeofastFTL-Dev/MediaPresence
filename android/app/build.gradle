@@ -54,7 +54,7 @@ android {
 }
 
 dependencies {
-    // In-app QR scanner for the pairing code shown in NeoPresence on the PC.
+    // In-app QR scanner for the pairing code shown in MediaPresence on the PC.
     implementation 'com.journeyapps:zxing-android-embedded:4.3.0'
     // The scanner only declares androidx.core as compileOnly, so its ContextCompat reference
     // is not bundled and CaptureActivity.onResume crashes with NoClassDefFoundError.

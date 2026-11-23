@@ -8,7 +8,7 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NeoPresence
+namespace MediaPresence
 {
     /// <summary>
     /// Tiny HTTP/1.1 server (raw sockets, so it works without an URL ACL or admin rights)

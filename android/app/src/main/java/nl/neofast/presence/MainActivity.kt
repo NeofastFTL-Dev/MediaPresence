@@ -39,7 +39,7 @@ class MainActivity : Activity() {
             text = s; textSize = size; setTextColor(color); setPadding(0, 12, 0, 12); if (bold) typeface = Typeface.DEFAULT_BOLD
         }.also { root.addView(it) }
         fun btn(s: String, f: () -> Unit) = Button(this).apply { text = s; setOnClickListener { f() } }.also { root.addView(it) }
-        tv("NeoPresence", 30f, orange, true)
+        tv("MediaPresence", 30f, orange, true)
         tv("Laat zien wat je in VLC luistert op je Discord-profiel.", 15f)
         btn("QR-code van je pc scannen") { scanQr() }
         access = tv(""); accessBtn = btn("Meldingstoegang geven") {
@@ -155,7 +155,7 @@ class MainActivity : Activity() {
         try {
             IntentIntegrator(this)
                 .setDesiredBarcodeFormats(IntentIntegrator.QR_CODE)
-                .setPrompt("Richt je camera op de QR-code in NeoPresence op je pc")
+                .setPrompt("Richt je camera op de QR-code in MediaPresence op je pc")
                 .setBeepEnabled(false)
                 .setOrientationLocked(false)
                 .initiateScan()
@@ -193,7 +193,7 @@ class MainActivity : Activity() {
 
     private fun refresh() {
         val ok = hasAccess()
-        access.text = if (ok) "✔ Meldingstoegang staat aan" else "✖ Geef NeoPresence meldingstoegang, zodat hij kan zien wat VLC speelt."
+        access.text = if (ok) "✔ Meldingstoegang staat aan" else "✖ Geef MediaPresence meldingstoegang, zodat hij kan zien wat VLC speelt."
         access.setTextColor(if (ok) Color.rgb(120, 220, 120) else Color.rgb(255, 120, 120))
         accessBtn.visibility = if (ok) View.GONE else View.VISIBLE
         mediaBtn.visibility = if ((android.os.Build.VERSION.SDK_INT < 33 || checkSelfPermission(android.Manifest.permission.READ_MEDIA_VIDEO) == android.content.pm.PackageManager.PERMISSION_GRANTED) && checkSelfPermission(if (android.os.Build.VERSION.SDK_INT >= 33) android.Manifest.permission.READ_MEDIA_AUDIO else android.Manifest.permission.READ_EXTERNAL_STORAGE) == android.content.pm.PackageManager.PERMISSION_GRANTED) View.GONE else View.VISIBLE
@@ -227,7 +227,7 @@ class MainActivity : Activity() {
             s.isActive = false; s.release(); testSession = null
             Toast.makeText(this, "Test gestopt", Toast.LENGTH_SHORT).show(); return
         }
-        val m = MediaSession(this, "NeoPresenceTest")
+        val m = MediaSession(this, "MediaPresenceTest")
         m.setMetadata(MediaMetadata.Builder()
             .putString(MediaMetadata.METADATA_KEY_TITLE, "neopresence_test.mp3")
             .putLong(MediaMetadata.METADATA_KEY_DURATION, 60_000).build())

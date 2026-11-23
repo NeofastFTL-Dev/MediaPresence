@@ -59,7 +59,7 @@ jobs:
       - name: dotnet publish (Release, win-x64, self-contained, single file)
         run: |
           set -euo pipefail
-          dotnet publish pc/NeoPresence.csproj \
+          dotnet publish pc/MediaPresence.csproj \
             -c Release -r win-x64 --self-contained true \
             -p:PublishSingleFile=true -p:EnableWindowsTargeting=true \
             -o out
@@ -67,8 +67,8 @@ jobs:
       - name: Check the published exe
         run: |
           set -euo pipefail
-          exe=out/NeoPresence.exe
-          test -f "$exe" || { echo "NeoPresence.exe was not produced"; exit 1; }
+          exe=out/MediaPresence.exe
+          test -f "$exe" || { echo "MediaPresence.exe was not produced"; exit 1; }
           ls -lh "$exe"
           ftype=$(file -b "$exe")
           echo "file type: $ftype"

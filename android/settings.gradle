@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "NeoPresence"
+rootProject.name = "MediaPresence"
 include ':app'

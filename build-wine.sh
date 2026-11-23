@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build NeoPresence as a self-contained single-file Windows exe that runs under Wine.
+# Build MediaPresence as a self-contained single-file Windows exe that runs under Wine.
 #
 # Usage:
 #   ./build-wine.sh              build into dist/wine-x64 next to the project
@@ -23,8 +23,8 @@
 # live somewhere else.
 set -euo pipefail
 
-APP='NeoPresence'
-PROJECT_REL='pc/NeoPresence.csproj'   # relative to this script
+APP='MediaPresence'
+PROJECT_REL='pc/MediaPresence.csproj'   # relative to this script
 OUTPUT_REL='dist/wine-x64'     # relative to the project directory
 
 DRY_RUN=0

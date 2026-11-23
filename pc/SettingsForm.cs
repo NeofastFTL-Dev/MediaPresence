@@ -4,7 +4,7 @@ using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using QRCoder;
 
-namespace NeoPresence
+namespace MediaPresence
 {
     public sealed class SettingsForm : Form
     {
@@ -58,7 +58,7 @@ namespace NeoPresence
             _server = server;
             _presence = presence;
 
-            Text = "NeoPresence";
+            Text = "MediaPresence";
             BackColor = Back;
             ForeColor = Color.White;
             ClientSize = new Size(540, 780);
@@ -76,7 +76,7 @@ namespace NeoPresence
         {
             var title = new Label
             {
-                Text = "NeoPresence",
+                Text = "MediaPresence",
                 AutoSize = true,
                 Font = new Font("Segoe UI", 20f, FontStyle.Bold),
                 ForeColor = Orange,
@@ -105,7 +105,7 @@ namespace NeoPresence
             var newToken = Button("Nieuwe koppelcode", () =>
             {
                 if (MessageBox.Show(this, "De huidige koppeling met je telefoon stopt. Doorgaan?",
-                        "NeoPresence", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
+                        "MediaPresence", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
                 _cfg.Token = Config.NewToken();
                 _cfg.Save();
                 tokenBox.Text = _cfg.Token;
@@ -135,7 +135,7 @@ namespace NeoPresence
             _flow.Controls.Add(Row("Laatste update", _lastValue));
 
             _flow.Controls.Add(Header("Koppelen met je telefoon"));
-            _flow.Controls.Add(Label("Scan deze code met de knop \"QR-code van je pc scannen\" in de NeoPresence-app op je telefoon.", Muted));
+            _flow.Controls.Add(Label("Scan deze code met de knop \"QR-code van je pc scannen\" in de MediaPresence-app op je telefoon.", Muted));
             _flow.Controls.Add(_qr);
             _flow.Controls.Add(Label("Koppelcode", Muted));
             _flow.Controls.Add(tokenBox);
@@ -185,7 +185,7 @@ namespace NeoPresence
             if (!url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
             {
                 MessageBox.Show(this, "Het openbare adres moet met https:// beginnen, bijvoorbeeld https://presence.example.nl",
-                    "NeoPresence", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    "MediaPresence", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 

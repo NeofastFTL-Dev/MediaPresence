@@ -6,10 +6,10 @@
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>NeoPresence</AssemblyName>
-    <RootNamespace>NeoPresence</RootNamespace>
-    <AssemblyTitle>NeoPresence</AssemblyTitle>
-    <Product>NeoPresence</Product>
+    <AssemblyName>MediaPresence</AssemblyName>
+    <RootNamespace>MediaPresence</RootNamespace>
+    <AssemblyTitle>MediaPresence</AssemblyTitle>
+    <Product>MediaPresence</Product>
     <Version>1.0.0</Version>
     <ApplicationHighDpiMode>SystemAware</ApplicationHighDpiMode>
     <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>

@@ -1,7 +1,7 @@
 using System;
 using System.Text.Json.Nodes;
 
-namespace NeoPresence
+namespace MediaPresence
 {
     /// <summary>
     /// Turns the payloads the phone sends into Discord activities, coalesces bursts

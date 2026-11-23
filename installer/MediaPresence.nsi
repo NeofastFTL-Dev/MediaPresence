@@ -1,20 +1,20 @@
-; NeoPresence installer (NSIS 3).
-; Per-user install: no admin rights, installs under %LOCALAPPDATA%\Programs\NeoPresence.
-; Build:  makensis /INPUTCHARSET UTF8 NeoPresence.nsi
-; Input:  ..\pc\publish\NeoPresence.exe   (dotnet publish -c Release -r win-x64 --self-contained)
+; MediaPresence installer (NSIS 3).
+; Per-user install: no admin rights, installs under %LOCALAPPDATA%\Programs\MediaPresence.
+; Build:  makensis /INPUTCHARSET UTF8 MediaPresence.nsi
+; Input:  ..\pc\publish\MediaPresence.exe   (dotnet publish -c Release -r win-x64 --self-contained)
 
 Unicode true
 !include "MUI2.nsh"
 !include "FileFunc.nsh"
 
-!define APPNAME "NeoPresence"
+!define APPNAME "MediaPresence"
 !define APPVERSION "1.0.0"
 !define PUBLISHER "NeoFastFTL"
-!define APPEXE "NeoPresence.exe"
+!define APPEXE "MediaPresence.exe"
 !define UNINSTKEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
 
 Name "${APPNAME}"
-OutFile "..\dist\NeoPresence-Setup-${APPVERSION}.exe"
+OutFile "..\dist\MediaPresence-Setup-${APPVERSION}.exe"
 InstallDir "$LOCALAPPDATA\Programs\${APPNAME}"
 InstallDirRegKey HKCU "Software\${APPNAME}" "InstallDir"
 RequestExecutionLevel user
@@ -33,7 +33,7 @@ VIAddVersionKey "LegalCopyright" "${PUBLISHER}"
 
 !define MUI_ABORTWARNING
 !define MUI_FINISHPAGE_RUN "$INSTDIR\${APPEXE}"
-!define MUI_FINISHPAGE_RUN_TEXT "NeoPresence nu starten"
+!define MUI_FINISHPAGE_RUN_TEXT "MediaPresence nu starten"
 
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_DIRECTORY
@@ -46,17 +46,17 @@ VIAddVersionKey "LegalCopyright" "${PUBLISHER}"
 !insertmacro MUI_LANGUAGE "Dutch"
 !insertmacro MUI_LANGUAGE "English"
 
-Section "NeoPresence" SecMain
+Section "MediaPresence" SecMain
   SetShellVarContext current
   SetOutPath "$INSTDIR"
 
   ; A running copy holds the exe open, so close it before replacing the files.
-  DetailPrint "NeoPresence afsluiten..."
+  DetailPrint "MediaPresence afsluiten..."
   nsExec::Exec 'taskkill /F /IM ${APPEXE}'
   Sleep 400
 
   SetOutPath "$INSTDIR"
-  File "..\pc\publish\NeoPresence.exe"
+  File "..\pc\publish\MediaPresence.exe"
   WriteUninstaller "$INSTDIR\Uninstall.exe"
 
   CreateDirectory "$SMPROGRAMS\${APPNAME}"
@@ -84,7 +84,7 @@ SectionEnd
 Section "Uninstall"
   SetShellVarContext current
 
-  DetailPrint "NeoPresence afsluiten..."
+  DetailPrint "MediaPresence afsluiten..."
   nsExec::Exec 'taskkill /F /IM ${APPEXE}'
   Sleep 400
 
@@ -103,5 +103,5 @@ Section "Uninstall"
   DeleteRegKey HKCU "${UNINSTKEY}"
   DeleteRegKey HKCU "Software\${APPNAME}"
 
-  ; The pairing config in %APPDATA%\NeoPresence is left alone on purpose.
+  ; The pairing config in %APPDATA%\MediaPresence is left alone on purpose.
 SectionEnd
